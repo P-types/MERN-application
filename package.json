@@ -1,0 +1,23 @@
+{
+  "name": "mern-simple-application",
+  "version": "1.0.0",
+  "description": "Simple MERN Stack Web Application (React + Express + Node) with In-Memory Storage",
+  "scripts": {
+    "backend": "cd backend && npm run dev",
+    "frontend": "cd frontend && npm run dev",
+    "backend:start": "cd backend && npm start",
+    "frontend:build": "cd frontend && npm run build",
+    "frontend:preview": "cd frontend && npm run preview",
+    "install:all": "npm --prefix backend install && npm --prefix frontend install"
+  },
+  "keywords": [
+    "mern",
+    "react",
+    "express",
+    "nodejs",
+    "rest-api",
+    "in-memory"
+  ],
+  "author": "",
+  "license": "MIT"
+}
