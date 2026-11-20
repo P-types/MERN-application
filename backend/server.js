@@ -1,12 +1,16 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import { connectDB, isDBConnected } from './config/db.js';
 import itemsRouter from './routes/items.js';
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// Connect to MongoDB
+connectDB();
 
 // Middleware
 app.use(cors());
@@ -21,9 +25,14 @@ app.use((req, res, next) => {
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
+  const dbConnected = isDBConnected();
   res.json({
     status: 'online',
-    message: 'Backend server is running smoothly (In-memory storage active)',
+    database: dbConnected ? 'connected' : 'disconnected',
+    databaseType: 'MongoDB (Mongoose)',
+    message: dbConnected
+      ? 'Backend and MongoDB are fully connected and online'
+      : 'Backend is running, but MongoDB is not connected',
     timestamp: new Date().toISOString(),
     nodeVersion: process.version
   });
@@ -52,7 +61,7 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`\n=================================================`);
   console.log(`🚀 MERN Backend Server running on http://localhost:${PORT}`);
-  console.log(`📦 Storage: In-memory (No database required)`);
+  console.log(`🍃 Database: MongoDB via Mongoose`);
   console.log(`📡 Health Check: http://localhost:${PORT}/api/health`);
   console.log(`📋 Items API: http://localhost:${PORT}/api/items`);
   console.log(`=================================================\n`);

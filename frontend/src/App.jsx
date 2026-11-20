@@ -10,6 +10,7 @@ export default function App() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [backendStatus, setBackendStatus] = useState('checking');
+  const [dbStatus, setDbStatus] = useState('unknown');
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -26,7 +27,13 @@ export default function App() {
   // Check health and ping server
   const checkServerStatus = async () => {
     const health = await api.checkHealth();
-    setBackendStatus(health.status === 'online' ? 'online' : 'offline');
+    if (health.status === 'online') {
+      setBackendStatus('online');
+      setDbStatus(health.database || 'connected');
+    } else {
+      setBackendStatus('offline');
+      setDbStatus('disconnected');
+    }
   };
 
   // Fetch items from backend
@@ -43,7 +50,7 @@ export default function App() {
     } catch (err) {
       console.error(err);
       setBackendStatus('offline');
-      showToast('Could not reach backend server. Make sure it is running on port 5000.', 'error');
+      showToast('Could not reach backend server or MongoDB database.', 'error');
     } finally {
       setLoading(false);
     }
@@ -59,7 +66,7 @@ export default function App() {
   const handleAddItem = async (itemData) => {
     const newItem = await api.createItem(itemData);
     setItems((prev) => [newItem, ...prev]);
-    showToast(`Task "${newItem.title}" created successfully!`);
+    showToast(`Task "${newItem.title}" saved to MongoDB!`);
   };
 
   // Toggle Complete
@@ -78,7 +85,7 @@ export default function App() {
     try {
       const updated = await api.updateItem(id, updates);
       setItems((prev) => prev.map((item) => (item.id === id ? updated : item)));
-      showToast('Task updated successfully!');
+      showToast('Task updated in MongoDB!');
     } catch (err) {
       showToast(err.message, 'error');
     }
@@ -90,7 +97,7 @@ export default function App() {
     try {
       await api.deleteItem(id);
       setItems((prev) => prev.filter((item) => item.id !== id));
-      showToast('Task removed from in-memory store', 'info');
+      showToast('Task deleted from MongoDB', 'info');
     } catch (err) {
       showToast(err.message, 'error');
     }
@@ -112,7 +119,7 @@ export default function App() {
       )}
 
       {/* Top Header */}
-      <Header backendStatus={backendStatus} />
+      <Header backendStatus={backendStatus} dbStatus={dbStatus} />
 
       {/* Main Content Area */}
       <main className="main-content">
@@ -122,7 +129,10 @@ export default function App() {
           completed={completedCount}
           active={activeCount}
           backendStatus={backendStatus}
-          onRefresh={fetchItems}
+          onRefresh={() => {
+            checkServerStatus();
+            fetchItems();
+          }}
         />
 
         {/* Two-Column Responsive Layout */}
@@ -132,14 +142,14 @@ export default function App() {
             <ItemForm onAddItem={handleAddItem} />
 
             <div className="card info-box">
-              <h3>💡 Architecture Note</h3>
+              <h3>🍃 MongoDB MERN Stack</h3>
               <p>
-                This application follows the <strong>MERN</strong> pattern:
+                Full-stack persistence with real database integration:
               </p>
               <ul>
-                <li><strong>Frontend:</strong> React 19 + Vite with modern component architecture</li>
+                <li><strong>Database:</strong> MongoDB via Mongoose schemas & indexes</li>
                 <li><strong>Backend:</strong> Node.js + Express.js REST API</li>
-                <li><strong>Storage:</strong> Fast In-Memory data store (no database installation or configuration required)</li>
+                <li><strong>Frontend:</strong> React 19 + Vite with reactive state</li>
               </ul>
             </div>
           </section>
@@ -165,7 +175,7 @@ export default function App() {
 
       {/* Footer */}
       <footer className="app-footer">
-        <p>Simple MERN Web Application • Express + Node API & React Frontend</p>
+        <p>Full MERN Web Application • MongoDB + Express + React + Node.js</p>
       </footer>
     </div>
   );
